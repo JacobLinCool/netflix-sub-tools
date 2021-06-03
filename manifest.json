@@ -1,0 +1,26 @@
+{
+    "manifest_version": 3,
+    "name": "netflix sub tools",
+    "version": "0.1",
+
+    "description": "netflix sub tools",
+    "permissions": ["activeTab"],
+    "host_permissions": ["https://www.netflix.com/*"],
+    "content_scripts": [
+        {
+            "matches": ["https://www.netflix.com/*"],
+            "run_at": "document_start",
+            "js": ["index.js"]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["script.js"],
+            "matches": ["<all_urls>"]
+        },
+        {
+            "resources": ["tools.css"],
+            "matches": ["<all_urls>"]
+        }
+    ]
+}
