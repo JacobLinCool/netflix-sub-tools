@@ -112,9 +112,10 @@ function setup_dom_observer() {
                                     item.innerHTML = x.lang;
                                     item.addEventListener("click", () => {
                                         NFLX_TOOL_STG.sub1 = x.lang_code;
-                                        item.classList.add("selected");
                                         localStorage.setItem("nst-first-sub", x.lang_code);
                                         load_sub1();
+                                        [...list.querySelectorAll("li")].forEach((x) => x.classList.remove("selected"));
+                                        item.classList.add("selected");
                                         console.log(`[Netflix Subtitle Tools] First Subtitle: ${x.lang_code}`);
                                     });
                                     list.appendChild(item);
@@ -125,8 +126,9 @@ function setup_dom_observer() {
                             close.innerHTML = "關閉";
                             close.addEventListener("click", () => {
                                 NFLX_TOOL_STG.sub1 = null;
-                                close.classList.add("selected");
                                 localStorage.removeItem("nst-first-sub");
+                                [...list.querySelectorAll("li")].forEach((x) => x.classList.remove("selected"));
+                                close.classList.add("selected");
                                 console.log(`[Netflix Subtitle Tools] First Subtitle: close`);
                             });
                             list.appendChild(close);
@@ -153,9 +155,10 @@ function setup_dom_observer() {
                                     item.innerHTML = x.lang;
                                     item.addEventListener("click", () => {
                                         NFLX_TOOL_STG.sub2 = x.lang_code;
-                                        item.classList.add("selected");
                                         localStorage.setItem("nst-second-sub", x.lang_code);
                                         load_sub2();
+                                        [...list.querySelectorAll("li")].forEach((x) => x.classList.remove("selected"));
+                                        item.classList.add("selected");
                                         console.log(`[Netflix Subtitle Tools] Second Subtitle: ${x.lang_code}`);
                                     });
                                     list.appendChild(item);
@@ -166,8 +169,9 @@ function setup_dom_observer() {
                             close.innerHTML = "關閉";
                             close.addEventListener("click", () => {
                                 NFLX_TOOL_STG.sub2 = null;
-                                close.classList.add("selected");
                                 localStorage.removeItem("nst-second-sub");
+                                [...list.querySelectorAll("li")].forEach((x) => x.classList.remove("selected"));
+                                close.classList.add("selected");
                                 console.log(`[Netflix Subtitle Tools] Second Subtitle: close`);
                             });
                             list.appendChild(close);
@@ -230,12 +234,12 @@ function setup_dom_observer() {
 }
 
 function sub_update(time) {
-    if ((NFLX_TOOL_STG.sub1 && NFLX_TOOL_STG.sub1_data) || (NFLX_TOOL_STG.sub2 && NFLX_TOOL_STG.sub2_data)) {
+    if (NFLX_TOOL_STG.sub1_data || NFLX_TOOL_STG.sub2_data) {
         let sub1 = NFLX_TOOL_STG.sub1_data ? NFLX_TOOL_STG.sub1_data.filter((x) => (x ? x.start <= time && x.end >= time : false)) : [];
-        if (sub1.length) NFLX_TOOL_DOM.sub1.innerHTML = sub1[0].text;
+        if (NFLX_TOOL_STG.sub1 && sub1.length) NFLX_TOOL_DOM.sub1.innerHTML = sub1[0].text;
         else NFLX_TOOL_DOM.sub1.innerHTML = "";
         let sub2 = NFLX_TOOL_STG.sub2_data ? NFLX_TOOL_STG.sub2_data.filter((x) => (x ? x.start <= time && x.end >= time : false)) : [];
-        if (sub2.length) NFLX_TOOL_DOM.sub2.innerHTML = sub2[0].text;
+        if (NFLX_TOOL_STG.sub2 && sub2.length) NFLX_TOOL_DOM.sub2.innerHTML = sub2[0].text;
         else NFLX_TOOL_DOM.sub2.innerHTML = "";
     }
 }

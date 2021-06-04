@@ -1,16 +1,12 @@
 {
     "manifest_version": 3,
-    "name": "netflix sub tools",
-    "version": "0.1.0",
+    "name": "Netflix Sub Tools",
+    "version": "0.1.1",
     "icons": {
         "128": "img/NST.128.png",
         "256": "img/NST.256.png"
     },
-    "browser_action": {
-        "default_icon": "img/NST.128.png",
-        "default_title": "Netflix Sub Tools"
-    },
-    "description": "netflix sub tools",
+    "description": "Netflix Subtitle Tools",
     "permissions": ["activeTab"],
     "host_permissions": ["https://www.netflix.com/*"],
     "content_scripts": [
