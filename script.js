@@ -1,20 +1,15 @@
-let NFLX_TOOL_STG = {
-    video_id: null,
-    sub1: null,
-    sub1_data: null,
-    sub2: null,
-    sub2_data: null,
-};
-let NFLX_TOOL_DOM = {};
+let NFLX_TOOL_STG = {},
+    NFLX_TOOL_DOM = {};
 
 overwrite_global_functions();
-window.addEventListener("load", add_menu);
+window.addEventListener("load", setup_dom_observer);
 
 function overwrite_global_functions() {
     ((parse, stringify) => {
         JSON.parse = (text) => {
             let data = parse(text);
-            if (data && data.result && data.result.movieId && NFLX_TOOL_STG.video_id !== data.result.movieId) process_data(data.result);
+            if (data && data.result && data.result.movieId && NFLX_TOOL_STG.video_id !== data.result.movieId && !NFLX_TOOL_STG.locked)
+                process_data(data.result);
             return data;
         };
 
@@ -46,8 +41,9 @@ async function process_data(data) {
             text: process_text_data(data.timedtexttracks),
         },
     };
-    console.log(processed);
+    console.log(processed.tracks);
     NFLX_TOOL_STG = processed;
+    NFLX_TOOL_STG.locked = true;
 }
 
 function process_text_data(text_data) {
@@ -92,69 +88,118 @@ function process_audio_data(audio_data) {
     return audio_data;
 }
 
-function add_menu() {
+function setup_dom_observer() {
     let found_video = false;
     let observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
+                // Menu
                 if (node.nodeName.toUpperCase() == "DIV") {
                     let menu = (node.parentNode || node).querySelector(".audio-subtitle-controller");
                     if (menu && menu.querySelector(".nst-menu") === null) {
-                        // First Subtitle
+                        // Append First Subtitle Menu
                         (() => {
                             let wrapper = document.createElement("div");
-                            wrapper.classList.add("nst-menu", "track-list", "structural");
+                            wrapper.classList.add("nst-menu", "nst-menu-first-sub", "track-list", "structural");
                             wrapper.innerHTML = `<h3 class="list-header">第一字幕</h3>`;
                             let list = document.createElement("ul");
                             NFLX_TOOL_STG.tracks.text
                                 .filter((x) => !x.forced)
                                 .forEach((x) => {
                                     let item = document.createElement("li");
-                                    item.classList.add("track", "nst-first-sub-selector");
+                                    item.classList.add("track", "nst-first-sub-selector", x.lang, x.lang_code);
                                     if (x.lang_code === NFLX_TOOL_STG.sub1) item.classList.add("selected");
                                     item.innerHTML = x.lang;
                                     item.addEventListener("click", () => {
                                         NFLX_TOOL_STG.sub1 = x.lang_code;
                                         item.classList.add("selected");
+                                        localStorage.setItem("nst-first-sub", x.lang_code);
                                         load_sub1();
                                         console.log(`[Netflix Subtitle Tools] First Subtitle: ${x.lang_code}`);
                                     });
                                     list.appendChild(item);
                                 });
+                            let close = document.createElement("li");
+                            close.classList.add("track", "nst-first-sub-selector", "close");
+                            if (!NFLX_TOOL_STG.sub1) close.classList.add("selected");
+                            close.innerHTML = "關閉";
+                            close.addEventListener("click", () => {
+                                NFLX_TOOL_STG.sub1 = null;
+                                close.classList.add("selected");
+                                localStorage.removeItem("nst-first-sub");
+                                console.log(`[Netflix Subtitle Tools] First Subtitle: close`);
+                            });
+                            list.appendChild(close);
+
                             wrapper.appendChild(list);
                             menu.appendChild(wrapper);
+
+                            let first_sub = list.querySelector(`.${localStorage.getItem("nst-first-sub") || "no-item-found"}`);
+                            if (first_sub) first_sub.click();
                         })();
 
-                        // Second Subtitle
+                        // Append Second Subtitle Menu
                         (() => {
                             let wrapper = document.createElement("div");
-                            wrapper.classList.add("nst-menu", "track-list", "structural");
+                            wrapper.classList.add("nst-menu", "nst-menu-second-sub", "track-list", "structural");
                             wrapper.innerHTML = `<h3 class="list-header">第二字幕</h3>`;
                             let list = document.createElement("ul");
                             NFLX_TOOL_STG.tracks.text
                                 .filter((x) => !x.forced)
                                 .forEach((x) => {
                                     let item = document.createElement("li");
-                                    item.classList.add("track", "nst-second-sub-selector");
+                                    item.classList.add("track", "nst-second-sub-selector", x.lang, x.lang_code);
                                     if (x.lang_code === NFLX_TOOL_STG.sub2) item.classList.add("selected");
                                     item.innerHTML = x.lang;
                                     item.addEventListener("click", () => {
                                         NFLX_TOOL_STG.sub2 = x.lang_code;
                                         item.classList.add("selected");
+                                        localStorage.setItem("nst-second-sub", x.lang_code);
                                         load_sub2();
                                         console.log(`[Netflix Subtitle Tools] Second Subtitle: ${x.lang_code}`);
                                     });
                                     list.appendChild(item);
                                 });
+                            let close = document.createElement("li");
+                            close.classList.add("track", "nst-second-sub-selector", "close");
+                            if (!NFLX_TOOL_STG.sub2) close.classList.add("selected");
+                            close.innerHTML = "關閉";
+                            close.addEventListener("click", () => {
+                                NFLX_TOOL_STG.sub2 = null;
+                                close.classList.add("selected");
+                                localStorage.removeItem("nst-second-sub");
+                                console.log(`[Netflix Subtitle Tools] Second Subtitle: close`);
+                            });
+                            list.appendChild(close);
+
                             wrapper.appendChild(list);
                             menu.appendChild(wrapper);
+
+                            let second_sub = list.querySelector(`.${localStorage.getItem("nst-second-sub") || "no-item-found"}`);
+                            if (second_sub) second_sub.click();
+                        })();
+
+                        // Remove .track-list-subtitles & Click 關閉
+                        (() => {
+                            let list = menu.querySelector(".track-list-subtitles");
+                            if (list) {
+                                [...list.querySelectorAll("li")].forEach((x) => {
+                                    if (x.innerText == "關閉") {
+                                        x.click();
+                                    }
+                                });
+                                list.remove();
+                            }
                         })();
                     }
                 }
+                // Subtitles
                 if (!found_video && document.querySelector("video")) {
                     found_video = true;
                     document.querySelector("video").addEventListener("timeupdate", () => {
-                        sub_update(document.querySelector("video").currentTime);
+                        try {
+                            sub_update(document.querySelector("video").currentTime);
+                        } catch (e) {}
                     });
 
                     let subtitle_wrap = document.createElement("div");
@@ -168,6 +213,15 @@ function add_menu() {
                     document.querySelector("video").parentElement.appendChild(subtitle_wrap);
                     NFLX_TOOL_DOM.sub1 = sub1;
                     NFLX_TOOL_DOM.sub2 = sub2;
+
+                    if (localStorage.getItem("nst-first-sub")) {
+                        NFLX_TOOL_STG.sub1 = localStorage.getItem("nst-first-sub");
+                        load_sub1();
+                    }
+                    if (localStorage.getItem("nst-second-sub")) {
+                        NFLX_TOOL_STG.sub2 = localStorage.getItem("nst-second-sub");
+                        load_sub2();
+                    }
                 }
             });
         });
@@ -176,7 +230,7 @@ function add_menu() {
 }
 
 function sub_update(time) {
-    if (NFLX_TOOL_STG.sub1_data || NFLX_TOOL_STG.sub2_data) {
+    if ((NFLX_TOOL_STG.sub1 && NFLX_TOOL_STG.sub1_data) || (NFLX_TOOL_STG.sub2 && NFLX_TOOL_STG.sub2_data)) {
         let sub1 = NFLX_TOOL_STG.sub1_data ? NFLX_TOOL_STG.sub1_data.filter((x) => (x ? x.start <= time && x.end >= time : false)) : [];
         if (sub1.length) NFLX_TOOL_DOM.sub1.innerHTML = sub1[0].text;
         else NFLX_TOOL_DOM.sub1.innerHTML = "";
@@ -211,7 +265,7 @@ async function load_sub1() {
         });
 
     NFLX_TOOL_STG.sub1_data = vtt;
-    console.log(vtt);
+    console.log(`[Netflix Subtitle Tools] Subtitle Loaded: ${NFLX_TOOL_STG.sub1}`);
 }
 
 async function load_sub2() {
@@ -239,5 +293,5 @@ async function load_sub2() {
         });
 
     NFLX_TOOL_STG.sub2_data = vtt;
-    console.log(vtt);
+    console.log(`[Netflix Subtitle Tools] Subtitle Loaded: ${NFLX_TOOL_STG.sub2}`);
 }

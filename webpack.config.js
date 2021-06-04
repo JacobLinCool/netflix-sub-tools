@@ -1,9 +1,12 @@
 module.exports = {
     context: __dirname,
-    entry: "./index.js",
+    entry: "./script.js",
     mode: "production",
-    target: "webworker",
     optimization: {
         minimize: true,
+    },
+    output: {
+        filename: "script.min.js",
+        path: __dirname,
     },
 };

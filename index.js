@@ -2,7 +2,7 @@ install();
 
 //////////////////////////////
 async function install() {
-    await load_script("script.js");
+    await load_script("script.min.js");
     await load_css("tools.css");
     console.log("[Netflix Subtitle Tools] Extension Loaded");
 }
