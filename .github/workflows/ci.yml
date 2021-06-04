@@ -1,0 +1,18 @@
+name: Build CI
+on:
+  push
+
+jobs:
+  release:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GH_TOKEN }}
+      - name: Install Packages
+        run: npm install
+      - name: Build
+        run: npm run minify

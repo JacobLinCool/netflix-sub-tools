@@ -5,12 +5,14 @@
   "main": "dist/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "build": "webpack",
+    "minify": "uglifyjs script.js -c -m -o script.min.js"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "uglify-js": "^3.13.8",
     "webpack": "^5.38.1",
     "webpack-cli": "^4.7.0"
   }

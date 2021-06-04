@@ -1,15 +1,19 @@
-let NFLX_TOOL_STG = {},
-    NFLX_TOOL_DOM = {};
+window.NST_STG = {};
+window.NST_MTX = {};
+window.NST_DOM = {};
 
 overwrite_global_functions();
-window.addEventListener("load", setup_dom_observer);
+window.addEventListener("load", nst_change_dom);
 
 function overwrite_global_functions() {
     ((parse, stringify) => {
         JSON.parse = (text) => {
             let data = parse(text);
-            if (data && data.result && data.result.movieId && NFLX_TOOL_STG.video_id !== data.result.movieId && !NFLX_TOOL_STG.locked)
-                process_data(data.result);
+            if (data && data.result && data.result.movieId) {
+                NST_MTX[Number(data.result.movieId)] = process_data(data.result);
+                if (location.pathname.split("/").length >= 3 && location.pathname.split("/")[2] == data.result.movieId)
+                    NST_STG = NST_MTX[Number(location.pathname.split("/")[2])];
+            }
             return data;
         };
 
@@ -20,7 +24,7 @@ function overwrite_global_functions() {
                         v.profiles.unshift("webvtt-lssdh-ios8");
                         v.showAllSubDubTracks = true;
                     } catch (err) {
-                        if (!(err instanceof TypeError)) console.error(`[Netflix Subtitle Tools] Error: `, err);
+                        if (!(err instanceof TypeError)) console.error(`[NST] Error: `, err);
                     }
                 }
             }
@@ -28,9 +32,25 @@ function overwrite_global_functions() {
             return stringify(data);
         };
     })(JSON.parse, JSON.stringify);
+
+    (() => {
+        history.push_state = history.pushState;
+        history.pushState = (...args) => {
+            console.log(`[History] Pushed`, args);
+            let url = new URL(args[2]);
+            if (url.pathname.split("/").length >= 3 && url.pathname.split("/")[2]) NST_STG = NST_MTX[Number(url.pathname.split("/")[2])];
+            return history.push_state(...args);
+        };
+        history.replace_state = history.replaceState;
+        history.replaceState = (...args) => {
+            console.log(`[History] Replaced`, args);
+            if (url.pathname.split("/").length >= 3 && url.pathname.split("/")[2]) NST_STG = NST_MTX[Number(url.pathname.split("/")[2])];
+            return history.replace_state(...args);
+        };
+    })();
 }
 
-async function process_data(data) {
+function process_data(data) {
     let processed = {
         ip: data.clientIpAddress,
         expiration: data.expiration,
@@ -42,8 +62,7 @@ async function process_data(data) {
         },
     };
     console.log(processed.tracks);
-    NFLX_TOOL_STG = processed;
-    NFLX_TOOL_STG.locked = true;
+    return processed;
 }
 
 function process_text_data(text_data) {
@@ -88,8 +107,12 @@ function process_audio_data(audio_data) {
     return audio_data;
 }
 
+function nst_change_dom() {
+    setup_dom_observer();
+    if (localStorage.getItem("nst-custom-css")) apply_custom_css(localStorage.getItem("nst-custom-css"));
+}
+
 function setup_dom_observer() {
-    let found_video = false;
     let observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
@@ -103,33 +126,30 @@ function setup_dom_observer() {
                             wrapper.classList.add("nst-menu", "nst-menu-first-sub", "track-list", "structural");
                             wrapper.innerHTML = `<h3 class="list-header">第一字幕</h3>`;
                             let list = document.createElement("ul");
-                            NFLX_TOOL_STG.tracks.text
+                            NST_STG.tracks.text
                                 .filter((x) => !x.forced)
                                 .forEach((x) => {
                                     let item = document.createElement("li");
                                     item.classList.add("track", "nst-first-sub-selector", x.lang, x.lang_code);
-                                    if (x.lang_code === NFLX_TOOL_STG.sub1) item.classList.add("selected");
+                                    if (x.lang_code === NST_STG.sub1) item.classList.add("selected");
                                     item.innerHTML = x.lang;
                                     item.addEventListener("click", () => {
-                                        NFLX_TOOL_STG.sub1 = x.lang_code;
-                                        localStorage.setItem("nst-first-sub", x.lang_code);
-                                        load_sub1();
+                                        load_sub1(x.lang_code);
                                         [...list.querySelectorAll("li")].forEach((x) => x.classList.remove("selected"));
                                         item.classList.add("selected");
-                                        console.log(`[Netflix Subtitle Tools] First Subtitle: ${x.lang_code}`);
                                     });
                                     list.appendChild(item);
                                 });
                             let close = document.createElement("li");
                             close.classList.add("track", "nst-first-sub-selector", "close");
-                            if (!NFLX_TOOL_STG.sub1) close.classList.add("selected");
+                            if (!NST_STG.sub1) close.classList.add("selected");
                             close.innerHTML = "關閉";
                             close.addEventListener("click", () => {
-                                NFLX_TOOL_STG.sub1 = null;
+                                NST_STG.sub1 = null;
                                 localStorage.removeItem("nst-first-sub");
                                 [...list.querySelectorAll("li")].forEach((x) => x.classList.remove("selected"));
                                 close.classList.add("selected");
-                                console.log(`[Netflix Subtitle Tools] First Subtitle: close`);
+                                console.log(`[NST] First Subtitle: null`);
                             });
                             list.appendChild(close);
 
@@ -146,33 +166,30 @@ function setup_dom_observer() {
                             wrapper.classList.add("nst-menu", "nst-menu-second-sub", "track-list", "structural");
                             wrapper.innerHTML = `<h3 class="list-header">第二字幕</h3>`;
                             let list = document.createElement("ul");
-                            NFLX_TOOL_STG.tracks.text
+                            NST_STG.tracks.text
                                 .filter((x) => !x.forced)
                                 .forEach((x) => {
                                     let item = document.createElement("li");
                                     item.classList.add("track", "nst-second-sub-selector", x.lang, x.lang_code);
-                                    if (x.lang_code === NFLX_TOOL_STG.sub2) item.classList.add("selected");
+                                    if (x.lang_code === NST_STG.sub2) item.classList.add("selected");
                                     item.innerHTML = x.lang;
                                     item.addEventListener("click", () => {
-                                        NFLX_TOOL_STG.sub2 = x.lang_code;
-                                        localStorage.setItem("nst-second-sub", x.lang_code);
-                                        load_sub2();
+                                        load_sub2(x.lang_code);
                                         [...list.querySelectorAll("li")].forEach((x) => x.classList.remove("selected"));
                                         item.classList.add("selected");
-                                        console.log(`[Netflix Subtitle Tools] Second Subtitle: ${x.lang_code}`);
                                     });
                                     list.appendChild(item);
                                 });
                             let close = document.createElement("li");
                             close.classList.add("track", "nst-second-sub-selector", "close");
-                            if (!NFLX_TOOL_STG.sub2) close.classList.add("selected");
+                            if (!NST_STG.sub2) close.classList.add("selected");
                             close.innerHTML = "關閉";
                             close.addEventListener("click", () => {
-                                NFLX_TOOL_STG.sub2 = null;
+                                NST_STG.sub2 = null;
                                 localStorage.removeItem("nst-second-sub");
                                 [...list.querySelectorAll("li")].forEach((x) => x.classList.remove("selected"));
                                 close.classList.add("selected");
-                                console.log(`[Netflix Subtitle Tools] Second Subtitle: close`);
+                                console.log(`[NST] Second Subtitle: null`);
                             });
                             list.appendChild(close);
 
@@ -195,58 +212,116 @@ function setup_dom_observer() {
                                 list.remove();
                             }
                         })();
+
+                        // Append Custom Style Menu
+                        (() => {
+                            let wrapper = document.createElement("div");
+                            wrapper.classList.add("nst-menu", "nst-menu-custom-style", "track-list", "structural");
+                            wrapper.innerHTML = `<h3 class="list-header">字幕樣式</h3>`;
+                            let list = document.createElement("ul");
+
+                            let item = document.createElement("li");
+                            item.classList.add("track", "nst-custom-style");
+                            item.innerHTML = `開啟樣式面板`;
+                            item.addEventListener("click", () => {
+                                document.querySelector("video").pause();
+                                let panel = document.createElement("div"),
+                                    panel_wrap = document.createElement("div"),
+                                    code_zone = document.createElement("textarea"),
+                                    apply_btn = document.createElement("button");
+                                panel.classList.add("nst-custom-style-panel");
+                                panel_wrap.classList.add("nst-custom-style-panel-wrap");
+                                code_zone.classList.add("nst-custom-style-panel-code");
+                                apply_btn.classList.add("nst-custom-style-panel-btn");
+
+                                code_zone.value = localStorage.getItem("nst-custom-css") || ".nst-sub1 {\n\n}\n.nst-sub2 {\n\n}\n";
+                                apply_btn.innerHTML = "套用格式";
+
+                                panel_wrap.addEventListener("click", function (e) {
+                                    if (this == e.target) this.remove();
+                                });
+                                apply_btn.addEventListener("click", function (e) {
+                                    apply_custom_css(code_zone.value);
+                                    panel_wrap.remove();
+                                });
+
+                                panel_wrap.appendChild(panel);
+                                panel.appendChild(code_zone);
+                                panel.appendChild(apply_btn);
+                                document.body.appendChild(panel_wrap);
+                            });
+                            list.appendChild(item);
+
+                            wrapper.appendChild(list);
+                            menu.appendChild(wrapper);
+                        })();
                     }
                 }
+
                 // Subtitles
-                if (!found_video && document.querySelector("video")) {
-                    found_video = true;
-                    document.querySelector("video").addEventListener("timeupdate", () => {
-                        try {
-                            sub_update(document.querySelector("video").currentTime);
-                        } catch (e) {}
-                    });
-
-                    let subtitle_wrap = document.createElement("div");
-                    let sub1 = document.createElement("span"),
-                        sub2 = document.createElement("span");
-                    subtitle_wrap.classList.add("nst-sub-wrap");
-                    sub1.classList.add("nst-sub1");
-                    sub2.classList.add("nst-sub2");
-                    subtitle_wrap.appendChild(sub1);
-                    subtitle_wrap.appendChild(sub2);
-                    document.querySelector("video").parentElement.appendChild(subtitle_wrap);
-                    NFLX_TOOL_DOM.sub1 = sub1;
-                    NFLX_TOOL_DOM.sub2 = sub2;
-
-                    if (localStorage.getItem("nst-first-sub")) {
-                        NFLX_TOOL_STG.sub1 = localStorage.getItem("nst-first-sub");
-                        load_sub1();
+                [...document.querySelectorAll("video")].forEach((x) => {
+                    if (!x.parentNode.classList.contains("nst-sub-inserted")) {
+                        setup_subtitles(x);
                     }
-                    if (localStorage.getItem("nst-second-sub")) {
-                        NFLX_TOOL_STG.sub2 = localStorage.getItem("nst-second-sub");
-                        load_sub2();
-                    }
-                }
+                });
             });
         });
     });
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
+function setup_subtitles(video_node) {
+    let subtitle_wrap = document.createElement("div");
+    let sub1 = document.createElement("span"),
+        sub2 = document.createElement("span");
+    subtitle_wrap.classList.add("nst-sub-wrap");
+    sub1.classList.add("nst-sub1");
+    sub2.classList.add("nst-sub2");
+    subtitle_wrap.appendChild(sub1);
+    subtitle_wrap.appendChild(sub2);
+    video_node.parentNode.appendChild(subtitle_wrap);
+    NST_DOM.sub1 = sub1;
+    NST_DOM.sub2 = sub2;
+
+    if (localStorage.getItem("nst-first-sub")) {
+        NST_STG.sub1 = localStorage.getItem("nst-first-sub");
+        load_sub1(NST_STG.sub1);
+    }
+    if (localStorage.getItem("nst-second-sub")) {
+        NST_STG.sub2 = localStorage.getItem("nst-second-sub");
+        load_sub2(NST_STG.sub2);
+    }
+    video_node.parentNode.classList.add("nst-sub-inserted");
+    console.log(`[NST] Subtitle Elements Ready`);
+
+    video_node.addEventListener("timeupdate", () => {
+        try {
+            sub_update(video_node.currentTime);
+        } catch (e) {}
+    });
+}
+
 function sub_update(time) {
-    if (NFLX_TOOL_STG.sub1_data || NFLX_TOOL_STG.sub2_data) {
-        let sub1 = NFLX_TOOL_STG.sub1_data ? NFLX_TOOL_STG.sub1_data.filter((x) => (x ? x.start <= time && x.end >= time : false)) : [];
-        if (NFLX_TOOL_STG.sub1 && sub1.length) NFLX_TOOL_DOM.sub1.innerHTML = sub1[0].text;
-        else NFLX_TOOL_DOM.sub1.innerHTML = "";
-        let sub2 = NFLX_TOOL_STG.sub2_data ? NFLX_TOOL_STG.sub2_data.filter((x) => (x ? x.start <= time && x.end >= time : false)) : [];
-        if (NFLX_TOOL_STG.sub2 && sub2.length) NFLX_TOOL_DOM.sub2.innerHTML = sub2[0].text;
-        else NFLX_TOOL_DOM.sub2.innerHTML = "";
+    if (!document.querySelector(".nst-sub-wrap")) setup_subtitles();
+
+    if (NST_STG.sub1_data || NST_STG.sub2_data) {
+        let sub1 = NST_STG.sub1_data ? NST_STG.sub1_data.filter((x) => (x ? x.start <= time && x.end >= time : false)) : [];
+        if (NST_STG.sub1 && sub1.length) NST_DOM.sub1.innerHTML = sub1[0].text;
+        else NST_DOM.sub1.innerHTML = "";
+        let sub2 = NST_STG.sub2_data ? NST_STG.sub2_data.filter((x) => (x ? x.start <= time && x.end >= time : false)) : [];
+        if (NST_STG.sub2 && sub2.length) NST_DOM.sub2.innerHTML = sub2[0].text;
+        else NST_DOM.sub2.innerHTML = "";
     }
 }
 
-async function load_sub1() {
-    if (!NFLX_TOOL_STG.sub1) return;
-    let url = NFLX_TOOL_STG.tracks.text.filter((x) => x.lang_code == NFLX_TOOL_STG.sub1)[0].url;
+async function load_sub1(lang_code) {
+    if (NST_STG.sub1 == lang_code && NST_STG.sub1_data) return;
+
+    NST_STG.sub1 = lang_code;
+    localStorage.setItem("nst-first-sub", lang_code);
+    console.log(`[NST] First Subtitle: ${lang_code}`);
+
+    let url = NST_STG.tracks.text.filter((x) => x.lang_code == NST_STG.sub1)[0].url;
     vtt = (await fetch(url).then((r) => r.text()))
         .split("\n\n\n")[1]
         .split("\n\n")
@@ -268,13 +343,18 @@ async function load_sub1() {
             else return 0;
         });
 
-    NFLX_TOOL_STG.sub1_data = vtt;
-    console.log(`[Netflix Subtitle Tools] Subtitle Loaded: ${NFLX_TOOL_STG.sub1}`);
+    NST_STG.sub1_data = vtt;
+    console.log(`[NST] Subtitle Loaded: ${NST_STG.sub1}`);
 }
 
-async function load_sub2() {
-    if (!NFLX_TOOL_STG.sub2) return;
-    let url = NFLX_TOOL_STG.tracks.text.filter((x) => x.lang_code == NFLX_TOOL_STG.sub2)[0].url;
+async function load_sub2(lang_code) {
+    if (NST_STG.sub2 == lang_code && NST_STG.sub2_data) return;
+
+    NST_STG.sub2 = lang_code;
+    localStorage.setItem("nst-second-sub", lang_code);
+    console.log(`[NST] Second Subtitle: ${lang_code}`);
+
+    let url = NST_STG.tracks.text.filter((x) => x.lang_code == NST_STG.sub2)[0].url;
     vtt = (await fetch(url).then((r) => r.text()))
         .split("\n\n\n")[1]
         .split("\n\n")
@@ -296,6 +376,20 @@ async function load_sub2() {
             else return 0;
         });
 
-    NFLX_TOOL_STG.sub2_data = vtt;
-    console.log(`[Netflix Subtitle Tools] Subtitle Loaded: ${NFLX_TOOL_STG.sub2}`);
+    NST_STG.sub2_data = vtt;
+    console.log(`[NST] Subtitle Loaded: ${NST_STG.sub2}`);
+}
+
+function apply_custom_css(css) {
+    let style;
+    if (!document.querySelector(".nst-custom-style-loader")) {
+        style = document.createElement("style");
+        style.classList.add("nst-custom-style-loader");
+    } else style = document.querySelector(".nst-custom-style-loader");
+
+    style.innerHTML = css;
+
+    if (!document.querySelector(".nst-custom-style-loader")) document.body.appendChild(style);
+    localStorage.setItem("nst-custom-css", css);
+    console.log(`[NST] Custom CSS Applied`);
 }

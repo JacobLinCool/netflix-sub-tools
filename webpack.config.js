@@ -3,7 +3,7 @@ module.exports = {
     entry: "./script.js",
     mode: "production",
     optimization: {
-        minimize: true,
+        minimize: false,
     },
     output: {
         filename: "script.min.js",

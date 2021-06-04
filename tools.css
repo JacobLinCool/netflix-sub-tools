@@ -6,20 +6,22 @@
 .nst-sub-wrap {
     position: absolute;
     width: 100%;
-    bottom: max(50vh - 28.125vw, 8px);
+    bottom: max(50vh - 28.125vw + 8px, 8px);
     left: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
 }
 
 .nst-sub1 {
+    text-align: center;
     font-size: 4rem;
     text-shadow: 0px 0px 3px black;
 }
 
 .nst-sub2 {
+    text-align: center;
     font-size: 3rem;
     text-shadow: 0px 0px 2px black;
 }
@@ -27,4 +29,52 @@
 .nst-sub1::before,
 .nst-sub2::before {
     content: "\200b";
+}
+
+.nst-custom-style-panel-wrap {
+    z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background: #00000088;
+}
+
+.nst-custom-style-panel {
+    width: 85%;
+    height: 85%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 6px;
+
+    color: #343542;
+    background: #343542;
+}
+
+.nst-custom-style-panel-code {
+    width: 90%;
+    height: 75%;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 2.4rem;
+}
+.nst-custom-style-panel-code:focus {
+    outline: none !important;
+}
+
+.nst-custom-style-panel-btn {
+    width: calc(90% + 18px);
+    height: 40px;
+    border-radius: 8px;
 }
