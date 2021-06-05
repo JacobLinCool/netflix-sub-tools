@@ -472,7 +472,7 @@ async function load_sub1(lang_code) {
     console.log(`[NST] First Subtitle: ${lang_code}`);
 
     try {
-        NST_STG.sub1_data = await download_subtitle(lang_code, "NST JSON", false);
+        NST_STG.sub1_data = JSON.parse((await download_subtitle(lang_code, "NST JSON", false)).data);
         console.log(`[NST] Subtitle Loaded: ${NST_STG.sub1}`);
     } catch (err) {
         console.warn(`[NST] Sub Loader Error`, err);
@@ -487,7 +487,7 @@ async function load_sub2(lang_code) {
     console.log(`[NST] Second Subtitle: ${lang_code}`);
 
     try {
-        NST_STG.sub2_data = await download_subtitle(lang_code, "NST JSON", false);
+        NST_STG.sub2_data = JSON.parse((await download_subtitle(lang_code, "NST JSON", false)).data);
         console.log(`[NST] Subtitle Loaded: ${NST_STG.sub2}`);
     } catch (err) {
         console.warn(`[NST] Sub Loader Error`, err);
