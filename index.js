@@ -4,7 +4,7 @@ install();
 async function install() {
     await load_script("script.min.js");
     await load_css("tools.css");
-    console.log("[Netflix Subtitle Tools] Extension Loaded");
+    console.log("[NST] Extension Loaded");
 }
 
 function load_script(file) {

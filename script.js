@@ -3,7 +3,7 @@ window.NST_MTX = {};
 window.NST_DOM = {};
 
 overwrite_global_functions();
-window.addEventListener("load", nst_change_dom);
+window.addEventListener("load", nst_dom_handler);
 
 function overwrite_global_functions() {
     ((parse, stringify) => {
@@ -13,6 +13,7 @@ function overwrite_global_functions() {
                 NST_MTX[Number(data.result.movieId)] = process_data(data.result);
                 if (location.pathname.split("/").length >= 3 && location.pathname.split("/")[2] == data.result.movieId)
                     NST_STG = NST_MTX[Number(location.pathname.split("/")[2])];
+                else if (Object.keys(NST_MTX).length == 1) NST_STG = Object.values(NST_MTX)[0];
             }
             return data;
         };
@@ -36,15 +37,26 @@ function overwrite_global_functions() {
     (() => {
         history.push_state = history.pushState;
         history.pushState = (...args) => {
-            console.log(`[History] Pushed`, args);
-            let url = new URL(args[2]);
-            if (url.pathname.split("/").length >= 3 && url.pathname.split("/")[2]) NST_STG = NST_MTX[Number(url.pathname.split("/")[2])];
+            try {
+                console.log(`[NST] History Pushed`, args);
+                let url = new URL(location.origin + args[2]);
+                if (url.pathname.split("/").length >= 3 && url.pathname.split("/")[2]) NST_STG = NST_MTX[Number(url.pathname.split("/")[2])];
+                else if (Object.keys(NST_MTX).length == 1) NST_STG = Object.values(NST_MTX)[0];
+            } catch (err) {
+                console.error(`[NST] History Push Error`, err);
+            }
             return history.push_state(...args);
         };
         history.replace_state = history.replaceState;
         history.replaceState = (...args) => {
-            console.log(`[History] Replaced`, args);
-            if (url.pathname.split("/").length >= 3 && url.pathname.split("/")[2]) NST_STG = NST_MTX[Number(url.pathname.split("/")[2])];
+            try {
+                console.log(`[NST] History Replaced`, args);
+                let url = new URL(location.origin + args[2]);
+                if (url.pathname.split("/").length >= 3 && url.pathname.split("/")[2]) NST_STG = NST_MTX[Number(url.pathname.split("/")[2])];
+                else if (Object.keys(NST_MTX).length == 1) NST_STG = Object.values(NST_MTX)[0];
+            } catch (err) {
+                console.error(`[NST] History Replace Error`, err);
+            }
             return history.replace_state(...args);
         };
     })();
@@ -61,7 +73,6 @@ function process_data(data) {
             text: process_text_data(data.timedtexttracks),
         },
     };
-    console.log(processed.tracks);
     return processed;
 }
 
@@ -107,7 +118,7 @@ function process_audio_data(audio_data) {
     return audio_data;
 }
 
-function nst_change_dom() {
+function nst_dom_handler() {
     setup_dom_observer();
     if (localStorage.getItem("nst-custom-css")) apply_custom_css(localStorage.getItem("nst-custom-css"));
 }

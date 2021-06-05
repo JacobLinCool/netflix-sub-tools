@@ -16,3 +16,9 @@ jobs:
         run: npm install
       - name: Build
         run: npm run minify
+      - name: Push
+        run: |
+          git config --global user.name "JacobLinCool"
+          git config --global user.email "JacobLinCool@users.noreply.github.com"
+          git commit -am "Minify script.js"
+          git push
