@@ -31,7 +31,8 @@
     content: "\200b";
 }
 
-.nst-custom-style-panel-wrap {
+.nst-custom-style-panel-wrap,
+.nst-download-panel-wrap {
     z-index: 100;
     position: fixed;
     top: 0;
@@ -47,7 +48,8 @@
     background: #00000088;
 }
 
-.nst-custom-style-panel {
+.nst-custom-style-panel,
+.nst-download-panel {
     width: 85%;
     height: 85%;
 
@@ -82,8 +84,9 @@
     border: 1px solid #ffffff;
 }
 
-.nst-custom-style-panel-btn {
-    width: calc(90% + 18px);
+.nst-custom-style-panel-btn,
+.nst-download-panel-btn {
+    width: calc(90% + 16px);
     height: 40px;
 
     border: 1px solid #d2d2d2;
@@ -98,8 +101,30 @@
     transition: all 0.25s;
 }
 .nst-custom-style-panel-btn:hover,
-.nst-custom-style-panel-btn:focus {
+.nst-custom-style-panel-btn:focus,
+.nst-download-panel-btn:hover,
+.nst-download-panel-btn:focus {
     border: 1px solid #ffffff;
 
     background: #545562;
+}
+
+.nst-download-panel-lang-select-wrap,
+.nst-download-panel-format-select-wrap {
+    font-size: 2.6rem;
+    width: 90%;
+    display: grid;
+    grid-template-columns: 120px auto;
+}
+
+.nst-download-panel-lang-select-label,
+.nst-download-panel-format-select-label {
+    padding: 4px 0px;
+}
+
+
+.nst-download-panel-lang-select,
+.nst-download-panel-format-select {
+    background: #343542;
+    padding: 4px 8px;
 }
