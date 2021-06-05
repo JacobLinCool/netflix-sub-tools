@@ -126,6 +126,11 @@ function nst_dom_handler() {
 function setup_dom_observer() {
     let observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
+            if (!location.pathname.includes("/watch")) return;
+            if (!window.NST_DOM) window.NST_DOM = {};
+            if (!window.NST_MTX) window.NST_MTX = {};
+            if (!window.NST_STG) window.NST_STG = {};
+
             mutation.addedNodes.forEach((node) => {
                 // Menu
                 if (node.nodeName.toUpperCase() == "DIV") {
@@ -332,30 +337,34 @@ async function load_sub1(lang_code) {
     localStorage.setItem("nst-first-sub", lang_code);
     console.log(`[NST] First Subtitle: ${lang_code}`);
 
-    let url = NST_STG.tracks.text.filter((x) => x.lang_code == NST_STG.sub1)[0].url;
-    vtt = (await fetch(url).then((r) => r.text()))
-        .split("\n\n\n")[1]
-        .split("\n\n")
-        .map((sub) => {
-            let splitted = [...sub.matchAll(/(\d{1,4})\n(\d{2}:\d{2}:\d{2}.\d{3}) --> (\d{2}:\d{2}:\d{2}.\d{3})([^]+?)\n([^]+)/g)][0];
-            if (!splitted) return null;
-            let start_time = splitted[2].split(":").map(parseFloat);
-            let end_time = splitted[3].split(":").map(parseFloat);
-            return {
-                n: parseInt(splitted[1]),
-                start: start_time[0] * 3600 + start_time[1] * 60 + start_time[2],
-                end: end_time[0] * 3600 + end_time[1] * 60 + end_time[2],
-                style: splitted[4].trim(),
-                text: splitted[5].replaceAll(/<[^>]*>/g, "").trim(),
-            };
-        })
-        .sort((a, b) => {
-            if (a && b) return a.n - b.n;
-            else return 0;
-        });
+    try {
+        let url = NST_STG.tracks.text.filter((x) => x.lang_code == NST_STG.sub1)[0].url;
+        vtt = (await fetch(url).then((r) => r.text()))
+            .split("\n\n\n")[1]
+            .split("\n\n")
+            .map((sub) => {
+                let splitted = [...sub.matchAll(/(\d{1,4})\n(\d{2}:\d{2}:\d{2}.\d{3}) --> (\d{2}:\d{2}:\d{2}.\d{3})([^]+?)\n([^]+)/g)][0];
+                if (!splitted) return null;
+                let start_time = splitted[2].split(":").map(parseFloat);
+                let end_time = splitted[3].split(":").map(parseFloat);
+                return {
+                    n: parseInt(splitted[1]),
+                    start: start_time[0] * 3600 + start_time[1] * 60 + start_time[2],
+                    end: end_time[0] * 3600 + end_time[1] * 60 + end_time[2],
+                    style: splitted[4].trim(),
+                    text: splitted[5].replaceAll(/<[^>]*>/g, "").trim(),
+                };
+            })
+            .sort((a, b) => {
+                if (a && b) return a.n - b.n;
+                else return 0;
+            });
 
-    NST_STG.sub1_data = vtt;
-    console.log(`[NST] Subtitle Loaded: ${NST_STG.sub1}`);
+        NST_STG.sub1_data = vtt;
+        console.log(`[NST] Subtitle Loaded: ${NST_STG.sub1}`);
+    } catch (err) {
+        console.warn(`[NST] Sub Loader Error`, err);
+    }
 }
 
 async function load_sub2(lang_code) {
@@ -365,30 +374,34 @@ async function load_sub2(lang_code) {
     localStorage.setItem("nst-second-sub", lang_code);
     console.log(`[NST] Second Subtitle: ${lang_code}`);
 
-    let url = NST_STG.tracks.text.filter((x) => x.lang_code == NST_STG.sub2)[0].url;
-    vtt = (await fetch(url).then((r) => r.text()))
-        .split("\n\n\n")[1]
-        .split("\n\n")
-        .map((sub) => {
-            let splitted = [...sub.matchAll(/(\d{1,4})\n(\d{2}:\d{2}:\d{2}.\d{3}) --> (\d{2}:\d{2}:\d{2}.\d{3})([^]+?)\n([^]+)/g)][0];
-            if (!splitted) return null;
-            let start_time = splitted[2].split(":").map(parseFloat);
-            let end_time = splitted[3].split(":").map(parseFloat);
-            return {
-                n: parseInt(splitted[1]),
-                start: start_time[0] * 3600 + start_time[1] * 60 + start_time[2],
-                end: end_time[0] * 3600 + end_time[1] * 60 + end_time[2],
-                style: splitted[4].trim(),
-                text: splitted[5].replaceAll(/<[^>]*>/g, "").trim(),
-            };
-        })
-        .sort((a, b) => {
-            if (a && b) return a.n - b.n;
-            else return 0;
-        });
+    try {
+        let url = NST_STG.tracks.text.filter((x) => x.lang_code == NST_STG.sub2)[0].url;
+        vtt = (await fetch(url).then((r) => r.text()))
+            .split("\n\n\n")[1]
+            .split("\n\n")
+            .map((sub) => {
+                let splitted = [...sub.matchAll(/(\d{1,4})\n(\d{2}:\d{2}:\d{2}.\d{3}) --> (\d{2}:\d{2}:\d{2}.\d{3})([^]+?)\n([^]+)/g)][0];
+                if (!splitted) return null;
+                let start_time = splitted[2].split(":").map(parseFloat);
+                let end_time = splitted[3].split(":").map(parseFloat);
+                return {
+                    n: parseInt(splitted[1]),
+                    start: start_time[0] * 3600 + start_time[1] * 60 + start_time[2],
+                    end: end_time[0] * 3600 + end_time[1] * 60 + end_time[2],
+                    style: splitted[4].trim(),
+                    text: splitted[5].replaceAll(/<[^>]*>/g, "").trim(),
+                };
+            })
+            .sort((a, b) => {
+                if (a && b) return a.n - b.n;
+                else return 0;
+            });
 
-    NST_STG.sub2_data = vtt;
-    console.log(`[NST] Subtitle Loaded: ${NST_STG.sub2}`);
+        NST_STG.sub2_data = vtt;
+        console.log(`[NST] Subtitle Loaded: ${NST_STG.sub2}`);
+    } catch (err) {
+        console.warn(`[NST] Sub Loader Error`, err);
+    }
 }
 
 function apply_custom_css(css) {

@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Netflix Sub Tools",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "icons": {
         "128": "img/NST.128.png",
         "256": "img/NST.256.png"
