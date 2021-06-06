@@ -32,7 +32,8 @@
 }
 
 .nst-custom-style-panel-wrap,
-.nst-download-panel-wrap {
+.nst-download-panel-wrap,
+.nst-testing-panel-wrap {
     z-index: 100;
     position: fixed;
     top: 0;
@@ -49,7 +50,8 @@
 }
 
 .nst-custom-style-panel,
-.nst-download-panel {
+.nst-download-panel,
+.nst-testing-panel {
     width: 85%;
     height: 85%;
 
@@ -85,7 +87,8 @@
 }
 
 .nst-custom-style-panel-btn,
-.nst-download-panel-btn {
+.nst-download-panel-btn,
+.nst-testing-panel-btn {
     width: calc(90% + 16px);
     height: 40px;
 
@@ -103,28 +106,32 @@
 .nst-custom-style-panel-btn:hover,
 .nst-custom-style-panel-btn:focus,
 .nst-download-panel-btn:hover,
-.nst-download-panel-btn:focus {
+.nst-download-panel-btn:focus,
+.nst-testing-panel-btn:hover,
+.nst-testing-panel-btn:focus {
     border: 1px solid #ffffff;
 
     background: #545562;
 }
 
 .nst-download-panel-lang-select-wrap,
-.nst-download-panel-format-select-wrap {
+.nst-download-panel-format-select-wrap,
+.nst-testing-panel-dev-select-wrap {
     font-size: 2.6rem;
     width: 90%;
     display: grid;
-    grid-template-columns: 120px auto;
+    grid-template-columns: 160px auto;
 }
 
 .nst-download-panel-lang-select-label,
-.nst-download-panel-format-select-label {
+.nst-download-panel-format-select-label,
+.nst-testing-panel-dev-select-label {
     padding: 4px 0px;
 }
 
-
 .nst-download-panel-lang-select,
-.nst-download-panel-format-select {
+.nst-download-panel-format-select,
+.nst-testing-panel-dev-select {
     background: #343542;
     padding: 4px 8px;
 }

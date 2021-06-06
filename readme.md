@@ -1,16 +1,25 @@
 # Netflix Subtitle Tools
-目前都還在測試階段，應該有用但不保證有用。
+目前都還在測試階段，有遇到任何問題歡迎[提 Issue](https://github.com/JacobLinCool/netflix-sub-tools/issues)。
 
 ## 功能
 * 雙語字幕
 * 自訂字幕樣式
 * 下載字幕
 
-### 未來可能會加的功能
-* 目前沒有，歡迎提 Issue 或 PR
+### 可能會新增的功能
+* 目前沒有計畫，歡迎提 Issue 或 PR
 
 ## 已知問題
-* 有時候要重新載入頁面才會啟用（通常發生在從首頁跳轉時）
+* 有時候要重新載入頁面才會啟用
+
+## 適用瀏覽器
+* Chrome
+* Chromium
+* Chromium 衍伸瀏覽器
+  * Microsoft Edge
+  * Brave
+  * Vivaldi
+  * 其他基於 Chromium 核心開發的瀏覽器
 
 ## 安裝方法
 1. 前往 [Releases 頁面](https://github.com/JacobLinCool/netflix-sub-tools/releases)

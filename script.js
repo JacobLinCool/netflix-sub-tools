@@ -15,6 +15,7 @@ function overwrite_global_functions() {
         JSON.parse = (text) => {
             let data = parse(text);
             if (data && data.result && data.result.movieId) {
+                if (localStorage.getItem("nst-dev-mode")) console.log(data);
                 NST_MTX[Number(data.result.movieId)] = process_data(data.result);
                 if (location.pathname.split("/").length >= 3 && location.pathname.split("/")[2] == data.result.movieId)
                     NST_STG = NST_MTX[Number(location.pathname.split("/")[2])];
@@ -25,6 +26,7 @@ function overwrite_global_functions() {
 
         JSON.stringify = (data) => {
             if (data && typeof data.url === "string" && data.url.search(new RegExp("manifest|licensedManifest")) > -1) {
+                if (localStorage.getItem("nst-dev-mode")) console.log(data);
                 for (let v of Object.values(data)) {
                     try {
                         v.profiles.unshift("webvtt-lssdh-ios8");
@@ -43,26 +45,42 @@ function overwrite_global_functions() {
         history.push_state = history.pushState;
         history.pushState = (...args) => {
             try {
-                console.log(`[NST] History Pushed`, args);
+                if (localStorage.getItem("nst-dev-mode")) console.log(`[NST] History Pushed`, location, args);
                 let url = new URL(location.origin + args[2]);
                 if (url.pathname.split("/").length >= 3 && url.pathname.split("/")[2]) NST_STG = NST_MTX[Number(url.pathname.split("/")[2])];
                 else if (Object.keys(NST_MTX).length == 1) NST_STG = Object.values(NST_MTX)[0];
+
+                if (
+                    url.pathname.includes("/watch") &&
+                    !location.pathname.includes("/watch") &&
+                    !location.pathname.includes("/title") &&
+                    !location.search.includes("jbv")
+                )
+                    location = url;
+                else return history.push_state(...args);
             } catch (err) {
                 console.error(`[NST] History Push Error`, err);
             }
-            return history.push_state(...args);
         };
         history.replace_state = history.replaceState;
         history.replaceState = (...args) => {
             try {
-                console.log(`[NST] History Replaced`, args);
+                if (localStorage.getItem("nst-dev-mode")) console.log(`[NST] History Replaced`, location, args);
                 let url = new URL(location.origin + args[2]);
                 if (url.pathname.split("/").length >= 3 && url.pathname.split("/")[2]) NST_STG = NST_MTX[Number(url.pathname.split("/")[2])];
                 else if (Object.keys(NST_MTX).length == 1) NST_STG = Object.values(NST_MTX)[0];
+
+                if (
+                    url.pathname.includes("/watch") &&
+                    !location.pathname.includes("/watch") &&
+                    !location.pathname.includes("/title") &&
+                    !location.search.includes("jbv")
+                )
+                    location = url;
+                else return history.replace_state(...args);
             } catch (err) {
                 console.error(`[NST] History Replace Error`, err);
             }
-            return history.replace_state(...args);
         };
     })();
 }
@@ -379,6 +397,61 @@ function panel_menu() {
             panel.appendChild(lang_selector_wrap);
             panel.appendChild(format_selector_wrap);
             panel.appendChild(dl_btn);
+            panel_wrap.appendChild(panel);
+            document.body.appendChild(panel_wrap);
+        });
+        list.appendChild(item);
+    })();
+
+    // 測試功能面板
+    (() => {
+        let item = document.createElement("li");
+        item.classList.add("track", "nst-open-testing-panel");
+        item.innerHTML = `測試功能面板`;
+        item.addEventListener("click", () => {
+            let video = document.querySelector("video");
+            if (document.querySelector(".button-nfplayerPause")) document.querySelector(".button-nfplayerPause").click();
+            if (!video.paused) document.querySelector("video").pause();
+
+            let panel = document.createElement("div"),
+                panel_wrap = document.createElement("div"),
+                dev_selector_wrap = document.createElement("div"),
+                dev_selector_label = document.createElement("label"),
+                dev_selector = document.createElement("select"),
+                apply_btn = document.createElement("button");
+            panel.classList.add("nst-testing-panel");
+            panel_wrap.classList.add("nst-testing-panel-wrap");
+            dev_selector_wrap.classList.add("nst-testing-panel-dev-select-wrap");
+            dev_selector_label.classList.add("nst-testing-panel-dev-select-label");
+            dev_selector.classList.add("nst-testing-panel-dev-select");
+            apply_btn.classList.add("nst-testing-panel-btn");
+
+            dev_selector_label.innerHTML = "開發者模式";
+
+            ["開啟", "關閉"].forEach((type) => {
+                let option = document.createElement("option");
+                option.value = type;
+                option.innerHTML = type;
+                dev_selector.appendChild(option);
+            });
+            if (localStorage.getItem("nst-dev-mode")) dev_selector.value = "開啟";
+            else dev_selector.value = "關閉";
+
+            apply_btn.innerHTML = "套用設定";
+
+            panel_wrap.addEventListener("click", function (e) {
+                if (this == e.target) this.remove();
+            });
+            apply_btn.addEventListener("click", async function (e) {
+                if (dev_selector.value == "開啟") localStorage.setItem("nst-dev-mode", dev_selector.value);
+                else localStorage.removeItem("nst-dev-mode");
+                panel_wrap.remove();
+            });
+
+            dev_selector_wrap.appendChild(dev_selector_label);
+            dev_selector_wrap.appendChild(dev_selector);
+            panel.appendChild(dev_selector_wrap);
+            panel.appendChild(apply_btn);
             panel_wrap.appendChild(panel);
             document.body.appendChild(panel_wrap);
         });
