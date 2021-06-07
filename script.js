@@ -581,7 +581,7 @@ async function download_subtitle(lang_code, format, user = true) {
         };
 
     let subtitle = raw
-        .split("\n\n\n")[1]
+        .split(/\n[ ]{0,}\n[ ]{0,}\n/)[1]
         .split("\n\n")
         .map((sub) => {
             let splitted = [...sub.matchAll(/(\d{1,4})\n(\d{2}:\d{2}:\d{2}.\d{3}) --> (\d{2}:\d{2}:\d{2}.\d{3})([^]+?)\n([^]+)/g)][0];

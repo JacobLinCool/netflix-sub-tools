@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Netflix Sub Tools",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "author": "JacobLinCool <jacoblincool@gmail.com>",
     "homepage_url": "https://github.com/JacobLinCool/netflix-sub-tools/releases",
     "icons": {
